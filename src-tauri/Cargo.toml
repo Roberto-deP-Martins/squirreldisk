@@ -41,8 +41,6 @@ windows-sys = { version = "0.59", features = [
 ] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
-cocoa = "0.26" # Actualizada ligeramente para estabilidad con 0.6
-objc = "0.2"
 
 [features]
 default = ["custom-protocol"]
