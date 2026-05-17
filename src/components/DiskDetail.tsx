@@ -194,6 +194,10 @@ const Scanning = () => {
     }
   }, [view]);
 
+  useEffect(() => { 
+    setSelectedIds(new Set());
+  }, [focusedDirectory]);
+
   return (
     <>
       {view == "loading" && status && (
