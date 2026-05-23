@@ -11,6 +11,8 @@ interface FileLineProps {
   d3Chart: any;
   index: number;
   deleteMap: Map<string, boolean>;
+  isSelected: boolean;
+  selectedCount: number;
 }
 const mul = window.OS_TYPE === "Windows_NT" ? 1024 : 1000;
 export const FileLine = ({
@@ -19,20 +21,27 @@ export const FileLine = ({
   d3Chart,
   index,
   deleteMap,
+  isSelected = false,
+  selectedCount = 0,
 }: FileLineProps) => {
+
+  const isHighlighted = (hoveredItem && item.data && hoveredItem.id === item.data.id) || isSelected;
 
   return (
     <Draggable draggableId={item.data.id} index={index}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <div
           className={
-            "bg-gray-900 p-2 text-white flex justify-between rounded-md mt-1 pl-4 cursor-pointer hover:bg-black/20 " +
-            (hoveredItem && item.data && hoveredItem.id === item.data.id
-              ? "bg-black/20"
-              : " ") +
+            "p-2 text-white flex justify-between rounded-md mt-1 pl-4 cursor-pointer relative transition-colors duration-150 " +
+
+            // Mutually exclusive highlight states: hovered vs selected
+            (isHighlighted
+              ? "bg-zinc-800 "
+              : "bg-gray-900 hover:bg-black/25 ") +
+              
             (deleteMap.has(item.data.id)
-              ? "border border-red-800 hover:border-red-900"
-              : " ")
+              ? "border border-red-800 hover:border-red-900 "
+              : "border border-transparent ")
           }
           onContextMenu={(e) => {
             e.preventDefault();
@@ -68,6 +77,11 @@ export const FileLine = ({
               (item.data.data / mul / mul / mul).toFixed(2)}{" "}
             GB
           </div>
+          {snapshot.isDragging && isSelected && selectedCount > 1 && (
+             <div className="absolute -top-2 -right-2 z-50 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md pointer-events-none">
+               {selectedCount}
+             </div>
+          )}
         </div>
       )}
     </Draggable>
