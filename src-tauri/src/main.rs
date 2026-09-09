@@ -112,7 +112,6 @@ fn show_in_folder(path: String) {
 
 #[tauri::command]
 fn get_disks() -> String {
-    println!("{:?}", std::thread::current().name());
     let mut sys = System::new_all();
     sys.refresh_all();
 
