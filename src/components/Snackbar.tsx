@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import success from "../assets/success.svg";
+import warning from "../assets/warning.svg";
+import error from "../assets/error.svg";
 import info from "../assets/info.svg";
 import ProgressBar from "./ProgressBar";
 
@@ -55,34 +58,39 @@ export const Snackbar = (props: SnackbarProps) => {
     let bgColor = "";
     let bgColorHover = "";
     let progressBarClass = "";
+    let icon = "";
 
     switch (props.severity) {
         case SnackbarSeverity.SUCCESS:
             bgColor = "bg-green-900";
             bgColorHover = "hover:bg-green-950";
             progressBarClass = "success-progress";
+            icon = success;
             break;
         case SnackbarSeverity.ERROR:
             bgColor = "bg-red-900";
             bgColorHover = "hover:bg-red-950";
             progressBarClass = "error-progress";
+            icon = error;
             break;
         case SnackbarSeverity.WARNING: 
             bgColor = "bg-yellow-900";
             bgColorHover = "hover:bg-yellow-950";
             progressBarClass = "warning-progress";
+            icon = warning;
             break;
         case SnackbarSeverity.INFO:
             bgColor = "bg-blue-900";
             bgColorHover = "hover:bg-blue-950";
             progressBarClass = "info-progress";
+            icon = info;
             break;
     }
 
     return (
     <button className={`flex flex-col items-stretch w-full text-white rounded ${bgColor} ${bgColorHover}`} onClick={handleSnackbarClick}>
         <div className="flex flex-row items-center text-white py-2 px-4">
-            <img src={info} alt="Info" className="w-5 h-5 mr-2" />
+            <img src={icon} alt="Info" className="w-5 h-5 mr-2" />
             <p className="max-w-xs truncate">{props.message}</p>
         </div>
         <ProgressBar duration={duration} className={progressBarClass} />
