@@ -7,12 +7,13 @@ import { open } from "@tauri-apps/plugin-dialog";
 import folderIcon from "../assets/folder.png";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next"; // <--- NUEVO
+import packageJson from "../../package.json";
 
 declare global { interface Window { electron: any; analytics: any; configStore: any; licver: any; } }
 
 const DiskList = () => {
   const [disks, setDisks] = useState([]);
-  const [appVersion, setAppVersion] = useState("1.0.0");
+  const [appVersion, setAppVersion] = useState(packageJson.version);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
