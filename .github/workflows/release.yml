@@ -7,7 +7,7 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  release-windows-linux:
     permissions:
       contents: write # Permiso para que GitHub cree el Release
     
@@ -20,12 +20,6 @@ jobs:
             args: '--bundles msi'
           - platform: ubuntu-22.04
             args: '--bundles deb,rpm,appimage'
-          - platform: macos-latest
-            target: 'aarch64-apple-darwin' # Mac Silicon (M1/M2/M3)
-            args: '--bundles dmg --target aarch64-apple-darwin'
-          - platform: macos-latest
-            target: 'x86_64-apple-darwin' # Mac Intel
-            args: '--bundles dmg --target x86_64-apple-darwin'
 
     runs-on: ${{ matrix.platform }}
 
@@ -63,21 +57,55 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-      # --- MANEJO DE ERRORES ESPECÍFICO PARA MAC ---
-      - name: Evaluar error de macOS y guardar Log
-        if: failure() && matrix.platform == 'macos-latest'
-        run: |
-          echo "============================================="
-          echo "❌ LA COMPILACIÓN DE MAC ( ${{ matrix.target }} ) FALLÓ"
-          echo "============================================="
-          echo "Guardando el log de error en un archivo para el Release..."
-          # Extrae el log de error de Rust y lo guarda en un archivo de texto
-          echo "Error detectado en la plataforma ${{ matrix.target }}.\n\nRevisa los pasos de GitHub Actions para ver el error exacto de compilación." > error_mac_${{ matrix.target }}.txt
+  release-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - aarch64-apple-darwin
+          - x86_64-apple-darwin
           
-      - name: Subir Log de Error al Release (Si falló Mac)
-        if: failure() && matrix.platform == 'macos-latest'
-        uses: softprops/action-gh-release@v2
+    runs-on: macos-latest 
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          files: error_mac_${{ matrix.target }}.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          targets: ${{ matrix.target }}
+
+      - name: Prepare Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*' # Use your preferred Node version
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Tauri (Solo App)
+        run: pnpm tauri build --bundles app --target ${{ matrix.target }}
+
+      - name: Ad-hoc sign macOS App
+        run: codesign --force --deep --sign - "src-tauri/target/${{ matrix.target }}/release/bundle/macos/SQDisk.app"
+
+      - name: Zip macOS App
+        run: |
+          cd src-tauri/target/${{ matrix.target }}/release/bundle/macos/
+          zip -r SQDisk-macOS-${{ matrix.target }}.zip SQDisk.app
+
+      - name: Deploy macOS Release to GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: src-tauri/target/${{ matrix.target }}/release/bundle/macos/SQDisk-macOS-${{ matrix.target }}.zip
