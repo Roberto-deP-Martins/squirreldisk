@@ -7,7 +7,26 @@ on:
       - 'v*'
 
 jobs:
+  create-release:
+    name: Create Initial Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+    steps:
+      - name: Create Release (Draft)
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: 'Release ${{ github.ref_name }}'
+          body: 'Automatically generated. Check the logs if there are any failures.'
+          draft: true
+          prerelease: false
+
   release-windows-linux:
+    needs: create-release # Waits for the Release to be created
     permissions:
       contents: write # Permiso para que GitHub cree el Release
     
@@ -50,14 +69,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: 'Versión ${{ github.ref_name }}'
-          releaseBody: 'Automáticamente generada. Revisa los logs de macOS si fallaron.'
-          releaseDraft: false
-          prerelease: false
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
 
   release-macos:
+    needs: create-release
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -67,7 +85,8 @@ jobs:
           
     runs-on: macos-latest 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -108,4 +127,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
+          draft: true
           files: src-tauri/target/${{ matrix.target }}/release/bundle/macos/SQDisk-macOS-${{ matrix.target }}.zip
