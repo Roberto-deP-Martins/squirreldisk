@@ -6,16 +6,6 @@
     "main"
   ],
   "permissions": [
-    "core:default",
-    {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        {
-          "name": "/path/to/pdu-binary",
-          "cmd": "/path/to/pdu-binary",
-          "args": true
-        }
-      ]
-    }
+    "core:default"
   ]
 }

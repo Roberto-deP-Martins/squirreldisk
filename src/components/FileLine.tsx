@@ -74,7 +74,7 @@ export const FileLine = ({
             {/* {JSON.stringify(item.data)} */}
             {item &&
               item.data &&
-              (item.data.data / mul / mul / mul).toFixed(2)}{" "}
+              (item.data.size / mul / mul / mul).toFixed(2)}{" "}
             GB
           </div>
           {snapshot.isDragging && isSelected && selectedCount > 1 && (

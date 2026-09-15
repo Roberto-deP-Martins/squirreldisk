@@ -50,7 +50,8 @@ pub fn start(
     let shell = app_handle.shell();
     
     let (mut rx, child) = shell
-        .command("/path/to/pdu-binary")
+        .sidecar("pdu")
+        .expect("failed to create `pdu` sidecar command")
         .args(&paths_to_scan)
         .spawn()
         .expect("Failed to spawn PDU process");
